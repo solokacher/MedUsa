@@ -77,8 +77,8 @@ struct app_task_t task2_ctx = {MSS_TASK_CTX_STATE_INIT_VAL, MSS_TIMER_INVALID_HD
 #define TASK_1_ID                     (0)
 #define TASK_2_ID                     (1)
 
-#define LED_1_FREQ_MS                 (500)
-#define LED_2_FREQ_MS                 (1000)
+#define LED_1_FREQ_MS                 (50)
+#define LED_2_FREQ_MS                 (100)
 
 #define APP_ASSERT(cond)              HAL_ASSERT(cond)
 
