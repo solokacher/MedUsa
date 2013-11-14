@@ -28,111 +28,131 @@
 
 /**************************************************************************//**
 * 
-* @file     dev_types.h
+* @file     hal.c
 * 
-* @brief    device specific data types and hardware definitions header file
-* 
-* @version  0.2.1
+* @brief    hardware abstraction layer (hal) module for MSS demo on
+*           MSP-EXP430G2 Launchpad board
 *
+* @version  0.2.1
+* 
 * @author   Leo Hendrawan
 *
-* @remark   target device: MSP430G2452 & MSP430G2553 on MSP-EXP430G2 Launchpad
+* @remark 
 * 
 ******************************************************************************/
-
-#ifndef _DEV_TYPES_H_
-#define _DEV_TYPES_H_
 
 //*****************************************************************************
 // Include section
 //*****************************************************************************
 
-// include stdint.h and stbool.h if available
-#include <msp430.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <string.h>
+#include "dev_types.h"
+#include "hal.h"
 
 //*****************************************************************************
-// Global variable declarations 
+// Global variables 
 //*****************************************************************************
 
 
 //*****************************************************************************
-// Macros (defines) and data types 
+// Macros (defines), data types, static variables
 //*****************************************************************************
 
-/** NULL
- *  null pointer */
-#ifndef NULL
-#define NULL                               ((void*)0)
-#endif
-
-/** TRUE
- *  general logical true
- */
-#ifndef TRUE
-#define TRUE                               (true)
-#endif
-
-/** FALSE
- *  general logical false
- */
-#ifndef FALSE
-#define FALSE                              (false)
-#endif
-
-/** SUCCESS
- *  general success operation
- */
-#ifndef SUCCESS
-#define SUCCESS                            (true)
-#endif
-
-/** ERROR
- *  general error operation
- */
-#ifndef ERROR
-#define ERROR                              (false)
-#endif
-
-/*-------------- data type check - DO NOT CHANGE -------------------------- */
-
-/* test part for int8_t size */
-typedef char dev_types_chk_int8[((sizeof(int8_t)==1)? 1 : -1)];
-
-/* test part for uint8_t size */
-typedef char dev_types_chk_uint8[((sizeof(uint8_t)==1)? 1 : -1)];
-
-/* test part for int16_t size */
-typedef char dev_types_chk_int16[((sizeof(int16_t)==2)? 2 : -1)];
-
-/* test part for uint16_t size */
-typedef char dev_types_chk_uint16[((sizeof(uint16_t)==2)? 2 : -1)];
-
-/* test part for int32_t size */
-typedef char dev_types_chk_int32[((sizeof(int32_t)==4)? 4 : -1)];
-
-/* test part for uint32_t size */
-typedef char dev_types_chk_uint32[((sizeof(uint32_t)==4)? 4 : -1)];
-
-
-#ifndef __DisableCalData
-
-SFR_8BIT(CALDCO_16MHZ);                       /* DCOCTL  Calibration Data for 16MHz */
-SFR_8BIT(CALBC1_16MHZ);                       /* BCSCTL1 Calibration Data for 16MHz */
-SFR_8BIT(CALDCO_12MHZ);                       /* DCOCTL  Calibration Data for 12MHz */
-SFR_8BIT(CALBC1_12MHZ);                       /* BCSCTL1 Calibration Data for 12MHz */
-SFR_8BIT(CALDCO_8MHZ);                        /* DCOCTL  Calibration Data for 8MHz */
-SFR_8BIT(CALBC1_8MHZ);                        /* BCSCTL1 Calibration Data for 8MHz */
-SFR_8BIT(CALDCO_1MHZ);                        /* DCOCTL  Calibration Data for 1MHz */
-SFR_8BIT(CALBC1_1MHZ);                        /* BCSCTL1 Calibration Data for 1MHz */
-
-#endif /* #ifndef __DisableCalData */
+// function callback pointer
+static void (*timer_callback_ptr) (void) = NULL;
 
 //*****************************************************************************
-// External function declarations
+// Internal function declarations
 //*****************************************************************************
 
-#endif /* _DEV_TYPES_H_ */
+
+
+//*****************************************************************************
+// External functions
+//*****************************************************************************
+
+/**************************************************************************//**
+*
+* hal_init
+*
+* @brief      initialize the hal module
+*
+* @param      -
+*
+* @return     -
+*
+******************************************************************************/
+void hal_init(void)
+{
+  // initialize both LEDs on Launchpad
+  P1DIR |= (BIT0 + BIT6);
+  P1OUT &= ~(BIT0 + BIT6);
+}
+
+/**************************************************************************//**
+*
+* hal_toggle_led
+*
+* @brief      toggle a LED
+*
+* @param[in]  led   LED number to be toggled
+*
+* @return     -
+*
+******************************************************************************/
+void hal_toggle_led(uint8_t led)
+{
+  if(led == 1)
+  {
+    P1OUT ^= BIT0;
+  }
+  else if(led == 2)
+  {
+    P1OUT ^= BIT6;
+  }
+}
+
+/**************************************************************************//**
+*
+* hal_setup_timer_int
+*
+* @brief      setup a timer interrupt
+*
+* @param[in]  tick_ms     timer interrupt tick in miliseconds
+* @param[in]  callback    callback function to be called every timer tick
+*
+* @return     -
+*
+******************************************************************************/
+void hal_setup_timer_int(uint16_t tick_ms, void (*callback)(void))
+{
+  // ACLK is sourced from VLO  12 kHz
+  TACCR0 = 12 * tick_ms;
+  TACCTL0 = CCIE;
+  TACTL = TASSEL_1 + MC_1 + TACLR;
+
+  // save callback pointer
+  timer_callback_ptr = callback;
+}
+
+
+//*****************************************************************************
+// Internal functions
+//*****************************************************************************
+
+/**************************************************************************//**
+*
+* Timer_A_CCR0_ISR
+*
+* @brief      Timer A CCR0 ISR function
+*
+* @param      -
+*
+* @return     -
+*
+******************************************************************************/
+#pragma vector=TIMER0_A0_VECTOR
+__interrupt void Timer_A_CCR0_ISR(void)
+{
+  // call callback function
+  timer_callback_ptr();
+}

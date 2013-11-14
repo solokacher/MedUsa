@@ -45,7 +45,7 @@
 // Include section
 //*****************************************************************************
 
-// include header file containing declaration of task functions
+#include "timer_app.h"
 
 //*****************************************************************************
 // Global variable declarations 
@@ -60,23 +60,24 @@
  *  maximum number of MSS tasks. This shall not exceed the number of bits which
  *  the @ref mss_task_bits_t has.
  */
-#define MSS_NUM_OF_TASKS                 (1)
+#define MSS_NUM_OF_TASKS                 (2)
 
 /** MSS_TASK_LIST
- *  list of task function and parameter pointers of each MSS task. The task 
+ *  list of task function and parameter pointers of each MSS task. The task
  *  function pointer shall be a valid pointer to void (*) (void*) type function
- *  while the parameter pointers can take a NULL pointer. 
+ *  while the parameter pointers can take a NULL pointer.
  */
-#define MSS_TASK_LIST                \
-        {                            \
-          {example_task_1, NULL},    \
+#define MSS_TASK_LIST             \
+        {                         \
+          {task_app, &task1_ctx}, \
+          {task_app, &task2_ctx}  \
         }
 
 /** MSS_READY_TASK_BITS_INIT
- *  initialization value of MSS task ready bits. Each bit set represent the 
+ *  initialization value of MSS task ready bits. Each bit set represent the
  *  task which is ready to be executed right at the beginning.
  */
-#define MSS_READY_TASK_BITS_INIT         (0x0001)
+#define MSS_READY_TASK_BITS_INIT         (0x0003)
 
 /** MSS_PREEMPTIVE_SCHEDULING
  *  set to TRUE to activate preemptive scheduling, otherwise the scheduler
@@ -94,7 +95,7 @@
  *  set to TRUE to activate the MSS timer module. If it is not used,
  *  this option can be set as FALSE to save some memory space.
  */
-#define MSS_TASK_USE_TIMER               (FALSE)
+#define MSS_TASK_USE_TIMER               (TRUE)
 
 /** MSS_TASK_USE_MQUE
  *  set to TRUE to activate the MSS message queue module. If it is not used,
@@ -115,12 +116,12 @@
 #define MSS_TASK_USE_MEM                 (FALSE)
 
 /** MSS_MAX_NUM_OF_TIMER
- *  maximum number of timer used in the MSS application. 
- *  If @ref MSS_TASK_USE_TIMER is set as FALSE, this value will be 
+ *  maximum number of timer used in the MSS application.
+ *  If @ref MSS_TASK_USE_TIMER is set as FALSE, this value will be
  *  automativally set to zero
  */
 #if (MSS_TASK_USE_TIMER == TRUE)
-  #define MSS_MAX_NUM_OF_TIMER           (1)  
+  #define MSS_MAX_NUM_OF_TIMER           (MSS_NUM_OF_TASKS)
 #else
   #define MSS_MAX_NUM_OF_TIMER           (0)
 #endif
@@ -143,8 +144,8 @@ typedef uint8_t  mss_event_t;
 #endif
 
 /** MSS_MAX_NUM_OF_MQUE
- *  maximum number of message queues used in the MSS application. 
- *  If @ref MSS_TASK_USE_MQUE is set as FALSE, this value will be 
+ *  maximum number of message queues used in the MSS application.
+ *  If @ref MSS_TASK_USE_MQUE is set as FALSE, this value will be
  *  automativally set to zero
  */
 #if (MSS_TASK_USE_MQUE == TRUE)
@@ -154,8 +155,8 @@ typedef uint8_t  mss_event_t;
 #endif
 
 /** MSS_MAX_NUM_OF_SEMA
- *  maximum number of semaphores used in the MSS application. 
- *  If @ref MSS_TASK_USE_SEMA is set as FALSE, this value will be 
+ *  maximum number of semaphores used in the MSS application.
+ *  If @ref MSS_TASK_USE_SEMA is set as FALSE, this value will be
  *  automativally set to zero
  */
 #if (MSS_TASK_USE_SEMA == TRUE)
@@ -165,8 +166,8 @@ typedef uint8_t  mss_event_t;
 #endif
 
 /** MSS_MAX_NUM_OF_MEM
- *  maximum number of memory blocks used in the MSS application. 
- *  If @ref MSS_TASK_USE_MEM is set as FALSE, this value will be 
+ *  maximum number of memory blocks used in the MSS application.
+ *  If @ref MSS_TASK_USE_MEM is set as FALSE, this value will be
  *  automativally set to zero
  */
 #if (MSS_TASK_USE_MEM == TRUE)

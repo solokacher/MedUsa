@@ -28,24 +28,27 @@
 
 /**************************************************************************//**
 * 
-* @file     llist_cfg.h
+* @file     hal.h
 * 
-* @brief    linked list library configuration header file
+* @brief    hardware abstraction layer (hal) module for MSS demo on
+*           MSP-EXP430G2 Launchpad board
 * 
 * @version  0.2.1
+*
+* @author   Leo Hendrawan
 * 
 * @remark   
 * 
 ******************************************************************************/
 
-#ifndef _LLIST_CFG_H_
-#define _LLIST_CFG_H_
+#ifndef _HAL_H_
+#define _HAL_H_
 
 //*****************************************************************************
 // Include section
 //*****************************************************************************
 
-#include "mss_cfg.h"
+#include "dev_types.h"
 
 //*****************************************************************************
 // Global variable declarations 
@@ -56,29 +59,66 @@
 // Macros (defines) and data types 
 //*****************************************************************************
 
-/** MAX_NUM_OF_LLIST
- *  maximum number of linked list. MSS needs at least:
- *   - one linked list if MSS timer module is activated (MSS_TASK_USE_TIMER==TRUE)
- *   - one for every message queues
- *   - one for every memory blocks
- *  The application might increase the number of linked list if it wish to
- *  use the linked list (llist) module.
- */
-#if (MSS_TASK_USE_TIMER == TRUE)
-#define MAX_NUM_OF_LLIST         (1 + MSS_MAX_NUM_OF_MQUE + MSS_MAX_NUM_OF_MEM)
-#else
-#define MAX_NUM_OF_LLIST         (MSS_MAX_NUM_OF_MQUE + MSS_MAX_NUM_OF_MEM)
-#endif
+// red LED on MSP-EXP430G2 Launchpad
+#define HAL_LED1_ON()            do {P1OUT |= BIT0;} while(0)
+#define HAL_LED1_OFF()           do {P1OUT &= ~BIT0;} while(0)
+#define HAL_LED1_TOGGLE()        hal_toggle_led(1)
 
-/** LLIST_DEBUG_MODE
- *  activate the debug mode of linked list (llist) module if TRUE. Can be
- *  turned off by setting it to FALSE in order to reduce memory usage.
- */
-#define LLIST_DEBUG_MODE         (FALSE)
+// green LED on MSP-EXP430G2 Launchpad
+#define HAL_LED2_ON()            do {P1OUT |= BIT6;} while(0)
+#define HAL_LED2_OFF()           do {P1OUT &= ~BIT6;} while(0)
+#define HAL_LED2_TOGGLE()        hal_toggle_led(2)
+
+// delay loop - shall not release scheduler
+#define HAL_DELAY_LOOP_1S()      do {__delay_cycles(4000000);} while(0);
+
+#define HAL_ASSERT(x)            if(!(x)) do{__disable_interrupt(); \
+	                                         while(1);} while(0)
 
 //*****************************************************************************
 // External function declarations
 //*****************************************************************************
 
+/**************************************************************************//**
+*
+* hal_init
+*
+* @brief      initialize the hal module
+*
+* @param      -
+*
+* @return     -
+*
+******************************************************************************/
+void hal_init(void);
 
-#endif /* _LLIST_CFG_H_*/
+/**************************************************************************//**
+*
+* hal_toggle_led
+*
+* @brief      toggle a LED
+*
+* @param[in]  led   LED number to be toggled
+*
+* @return     -
+*
+******************************************************************************/
+void hal_toggle_led(uint8_t led);
+
+/**************************************************************************//**
+*
+* hal_setup_timer_int
+*
+* @brief      setup a timer interrupt
+*
+* @param[in]  tick_ms     timer interrupt tick in miliseconds
+* @param[in]  callback    callback function to be called every timer tick
+*
+* @return     -
+*
+******************************************************************************/
+void hal_setup_timer_int(uint16_t tick_ms, void (*callback)(void));
+
+
+#endif /* _HAL_H_ */
+
