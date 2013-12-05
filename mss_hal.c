@@ -93,13 +93,13 @@ static mss_timer_tick_t delay_timer_cnt = 0;
 void mss_hal_init(void)
 {
   // check calibration data
-  MSS_DEBUG_CHECK(CALBC1_8MHZ != 0xFF);
-  MSS_DEBUG_CHECK(CALDCO_8MHZ != 0xFF);
+  MSS_DEBUG_CHECK(CALBC1_1MHZ != 0xFF);
+  MSS_DEBUG_CHECK(CALDCO_1MHZ != 0xFF);
     
   // set basic clock module+
-  BCSCTL1 = XT2OFF | CALBC1_8MHZ;
-  DCOCTL = CALDCO_8MHZ;
-  BCSCTL2 |= DIVS_3;  // 1 MHz SMCLK
+  BCSCTL1 = XT2OFF | CALBC1_1MHZ;
+  DCOCTL = CALDCO_1MHZ;
+  BCSCTL2 |= DIVS_0;  // 1 MHz SMCLK
   BCSCTL3 = LFXT1S_2; // source VLOCLK as ACLK
 
   // wait until clock stabilizes
