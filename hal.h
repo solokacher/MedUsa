@@ -31,7 +31,7 @@
 * @file     hal.h
 * 
 * @brief    hardware abstraction layer (hal) module for MSS demo on
-*           MSP-EXP430G2 Launchpad board
+*           MSP-EXP430FR5739 board
 * 
 * @version  0.2.1
 *
@@ -60,13 +60,13 @@
 //*****************************************************************************
 
 // red LED on MSP-EXP430G2 Launchpad
-#define HAL_LED1_ON()            do {P1OUT |= BIT0;} while(0)
-#define HAL_LED1_OFF()           do {P1OUT &= ~BIT0;} while(0)
+#define HAL_LED1_ON()            do {P3OUT |= BIT7;} while(0)
+#define HAL_LED1_OFF()           do {P3OUT &= ~BIT7;} while(0)
 #define HAL_LED1_TOGGLE()        hal_toggle_led(1)
 
 // green LED on MSP-EXP430G2 Launchpad
-#define HAL_LED2_ON()            do {P1OUT |= BIT6;} while(0)
-#define HAL_LED2_OFF()           do {P1OUT &= ~BIT6;} while(0)
+#define HAL_LED2_ON()            do {P3OUT |= BIT6;} while(0)
+#define HAL_LED2_OFF()           do {P3OUT &= ~BIT6;} while(0)
 #define HAL_LED2_TOGGLE()        hal_toggle_led(2)
 
 // delay loop - shall not release scheduler

@@ -31,7 +31,7 @@
 * @file     hal.c
 * 
 * @brief    hardware abstraction layer (hal) module for MSS demo on
-*           MSP-EXP430G2 Launchpad board
+*           MSP-EXP430FR5739 board
 *
 * @version  0.2.1
 * 
@@ -84,8 +84,8 @@ static void (*timer_callback_ptr) (void) = NULL;
 void hal_init(void)
 {
   // initialize both LEDs on Launchpad
-  P1DIR |= (BIT0 + BIT6);
-  P1OUT &= ~(BIT0 + BIT6);
+  P3DIR |= (BIT6 + BIT7);
+  P3OUT &= ~(BIT6 + BIT7);
 }
 
 /**************************************************************************//**
@@ -103,11 +103,11 @@ void hal_toggle_led(uint8_t led)
 {
   if(led == 1)
   {
-    P1OUT ^= BIT0;
+    P3OUT ^= BIT7;
   }
   else if(led == 2)
   {
-    P1OUT ^= BIT6;
+    P3OUT ^= BIT6;
   }
 }
 
@@ -125,10 +125,10 @@ void hal_toggle_led(uint8_t led)
 ******************************************************************************/
 void hal_setup_timer_int(uint16_t tick_ms, void (*callback)(void))
 {
-  // ACLK is sourced from VLO  12 kHz
-  TACCR0 = 12 * tick_ms;
-  TACCTL0 = CCIE;
-  TACTL = TASSEL_1 + MC_1 + TACLR;
+  // ACLK is sourced from 250 kHz DCO
+  TA0CCR0 = tick_ms * 31;
+  TA0CCTL0 = CCIE;
+  TA0CTL = TASSEL_1 + ID_3 + MC_1 + TACLR;
 
   // save callback pointer
   timer_callback_ptr = callback;
@@ -156,3 +156,4 @@ __interrupt void Timer_A_CCR0_ISR(void)
   // call callback function
   timer_callback_ptr();
 }
+

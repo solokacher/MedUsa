@@ -36,7 +36,7 @@
 *
 * @author   Leo Hendrawan
 *
-* @remark   target device: MSP430G2452 & MSP430G2553 on MSP-EXP430G2 Launchpad
+* @remark   target device: MSP430FR5739 on MSP-EXP430FR5739
 * 
 ******************************************************************************/
 
@@ -117,19 +117,6 @@ typedef char dev_types_chk_int32[((sizeof(int32_t)==4)? 4 : -1)];
 /* test part for uint32_t size */
 typedef char dev_types_chk_uint32[((sizeof(uint32_t)==4)? 4 : -1)];
 
-
-#ifndef __DisableCalData
-
-SFR_8BIT(CALDCO_16MHZ);                       /* DCOCTL  Calibration Data for 16MHz */
-SFR_8BIT(CALBC1_16MHZ);                       /* BCSCTL1 Calibration Data for 16MHz */
-SFR_8BIT(CALDCO_12MHZ);                       /* DCOCTL  Calibration Data for 12MHz */
-SFR_8BIT(CALBC1_12MHZ);                       /* BCSCTL1 Calibration Data for 12MHz */
-SFR_8BIT(CALDCO_8MHZ);                        /* DCOCTL  Calibration Data for 8MHz */
-SFR_8BIT(CALBC1_8MHZ);                        /* BCSCTL1 Calibration Data for 8MHz */
-SFR_8BIT(CALDCO_1MHZ);                        /* DCOCTL  Calibration Data for 1MHz */
-SFR_8BIT(CALBC1_1MHZ);                        /* BCSCTL1 Calibration Data for 1MHz */
-
-#endif /* #ifndef __DisableCalData */
 
 //*****************************************************************************
 // External function declarations

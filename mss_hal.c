@@ -36,7 +36,7 @@
 *
 * @author   Leo Hendrawan
 * 
-* @remark   target device: MSP430G2452 & MSP430G2553 on MSP-EXP430G2 Launchpad
+* @remark   target device: MSP430FR5739 on MSP-EXP430FR5739
 * 
 ******************************************************************************/
 
@@ -92,32 +92,22 @@ static mss_timer_tick_t delay_timer_cnt = 0;
 ******************************************************************************/
 void mss_hal_init(void)
 {
-  // check calibration data
-  MSS_DEBUG_CHECK(CALBC1_1MHZ != 0xFF);
-  MSS_DEBUG_CHECK(CALDCO_1MHZ != 0xFF);
-    
-  // set basic clock module+
-  BCSCTL1 = XT2OFF | CALBC1_1MHZ;
-  DCOCTL = CALDCO_1MHZ;
-  BCSCTL2 |= DIVS_0;  // 1 MHz SMCLK
-  BCSCTL3 = LFXT1S_2; // source VLOCLK as ACLK
-
-  // wait until clock stabilizes
-  do
-  {
-    IFG1 &= ~OFIFG;
-    __delay_cycles(100);
-  } while(IFG1 & OFIFG);
+  // set clock system to work at 8 MHz
+  CSCTL0 = CSKEY;                           // unlock CS module
+  CSCTL1 |= DCOFSEL0 + DCOFSEL1;            // Set max. DCO setting
+  CSCTL2 = SELA_3 + SELS_3 + SELM_3;        // set ACLK = MCLK = DCO
+  CSCTL3 = DIVA_5 + DIVS_0 + DIVM_0;        // set all dividers
 
 #if (MSS_TASK_USE_TIMER == TRUE)
-  // use watchdog timer to generate mss timer interrupt tick
-  WDTCTL = WDT_MDLY_0_5; 
-  IE1 |= WDTIE;
+  // use Timer_A1 to generate interrupt
+  TA1CCTL0 = CCIE;
+  TA1CCR0 = 250;   // to generate 1 ms tick
+  TA1CTL = TASSEL_1 + MC_1 + TACLR; 
 #endif
   
 #if (MSS_PREEMPTIVE_SCHEDULING == TRUE)
   // enable interrupt
-  CACTL1 = CAIE;
+  CDINT |= CDIE;
 #endif /* (MSS_PREEMPTIVE_SCHEDULING == TRUE) */
 }
 
@@ -141,11 +131,7 @@ void mss_hal_init(void)
 *             the function
 *
 ******************************************************************************/
-#if (MSS_TASK_USE_TIMER == TRUE)
 void mss_hal_sleep(mss_timer_tick_t sleep_timeout)
-#else
-void mss_hal_sleep(void)
-#endif /* (MSS_TASK_USE_TIMER == TRUE) */
 {
 #if (MSS_TASK_USE_TIMER == TRUE)
   if(sleep_timeout != MSS_SLEEP_NO_TIMEOUT)
@@ -153,10 +139,13 @@ void mss_hal_sleep(void)
     // save delay timer ticks
     delay_timer_cnt = sleep_timeout;
   }
+#else
+  // make compiler quiet
+  sleep_timeout = sleep_timeout;
 #endif /* (MSS_TASK_USE_TIMER == TRUE) */
 
-  // go to LPM0 to keep SMCLK generating WDT interrupt
-  __bis_SR_register(LPM0_bits + GIE);
+  // go to LPM3 to keep ACLK generating TimerA1 CCR0
+  __bis_SR_register(LPM3_bits + GIE);
 
   // disable interrupt
   __disable_interrupt();
@@ -178,7 +167,7 @@ void mss_hal_sleep(void)
 void mss_hal_trigger_sw_int(void)
 {
   // generate interrupt by setting the interrupt flag
-  CACTL1 |= CAIFG;
+  CDINT |= CDIFG;
 }
 #endif /* (MSS_PREEMPTIVE_SCHEDULING == TRUE) */
 
@@ -222,42 +211,36 @@ uint8_t mss_get_highest_prio_task(mss_task_bits_t ready_bits)
 #if (MSS_TASK_USE_TIMER == TRUE)
 /**************************************************************************//**
 * 
-* WDT_ISR
+* TimerA1_CCR0_ISR
 * 
-* @brief      Watchdog Timer interrupt service routine
+* @brief      TimerA1 CCR0 interrupt service routine
 *
 * @param      -
 * 
 * @return     -
 * 
 ******************************************************************************/
-#pragma vector=WDT_VECTOR
-__interrupt void WDT_ISR(void)
+#pragma vector=TIMER1_A0_VECTOR
+__interrupt void TimerA1_CCR0_ISR(void)
 {
-  static uint8_t internal_tick = 0;
+  // increment mss timer tick
+  mss_timer_tick_cnt++;
   
-  // call mss timer tick function every four ticks to produce ~1ms timer tick
-  if(internal_tick++ & 0x01)
+  if(delay_timer_cnt)
   {
-    // increment mss timer tick
-	mss_timer_tick_cnt++;
+    // decrement counter
+    delay_timer_cnt--;
+  }
 
-    if(delay_timer_cnt)
+  if(delay_timer_cnt == 0)
+  {
+    // it is ok to enable interrupt now
+    __enable_interrupt();
+    
+    // wake up CPU if MSS is in sleep mode
+    if(mss_timer_tick())
     {
-      // decrement counter
-      delay_timer_cnt--;
-    }
-
-    if(delay_timer_cnt == 0)
-    {
-      // it is ok to enable interrupt now
-      __enable_interrupt();
-
-      // wake up CPU if MSS is in sleep mode
-      if(mss_timer_tick())
-      {
-        __bic_SR_register_on_exit(LPM0_bits);
-      }
+      __bic_SR_register_on_exit(LPM3_bits);
     }
   }
 }
@@ -275,11 +258,11 @@ __interrupt void WDT_ISR(void)
 * @return     -
 *
 ******************************************************************************/
-#pragma vector=COMPARATORA_VECTOR
+#pragma vector=COMP_D_VECTOR
 __interrupt void SwInt_ISR(void)
 {
   // clear flag
-  CACTL1 &= ~CAIFG;
+  CDINT &= ~CDIFG;
 
   // enable interrupt
   __enable_interrupt();
@@ -305,7 +288,7 @@ int __low_level_init(void)
 {
   // stop WDT
   WDTCTL = WDTPW + WDTHOLD;
-
+  
   return 1;
 }
 #else
