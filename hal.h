@@ -75,6 +75,9 @@
 #define HAL_ASSERT(x)            if(!(x)) do{__disable_interrupt(); \
 	                                         while(1);} while(0)
 
+#define HAL_VCC_HIGH			0x00
+#define HAL_VCC_LOW				0x01
+
 //*****************************************************************************
 // External function declarations
 //*****************************************************************************
@@ -119,6 +122,9 @@ void hal_toggle_led(uint8_t led);
 ******************************************************************************/
 void hal_setup_timer_int(uint16_t tick_ms, void (*callback)(void));
 
+
+void hal_toggle_vcc(uint8_t high_low);
+void hal_adjust_frequency(uint8_t quant);
 
 #endif /* _HAL_H_ */
 

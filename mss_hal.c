@@ -92,17 +92,44 @@ static mss_timer_tick_t delay_timer_cnt = 0;
 ******************************************************************************/
 void mss_hal_init(void)
 {
+	//turn off all GPIO
+	  P1DIR = 0;
+	  P1OUT = 0;
+	  P1REN = 0xFF;
+
+	  P2DIR = 0;
+	  P2OUT = 0;
+	  P2REN = 0xFF;
+
+	  P3DIR = 0;
+	  P3OUT = 0;
+	  P3REN = 0xFF;
+
+	  P4DIR = 0;
+	  P4OUT = 0;
+	  P4REN = 0xFF;
+
   // set clock system to work at 8 MHz
   CSCTL0 = CSKEY;                           // unlock CS module
   CSCTL1 |= DCOFSEL0 + DCOFSEL1;            // Set max. DCO setting
-  CSCTL2 = SELA_3 + SELS_3 + SELM_3;        // set ACLK = MCLK = DCO
-  CSCTL3 = DIVA_5 + DIVS_0 + DIVM_0;        // set all dividers
+  CSCTL2 = SELA_1 + SELS_3 + SELM_3;        // set ACLK = MCLK = DCO
+  CSCTL3 = DIVA_0 + DIVS_0 + DIVM_0;        // set all dividers
+
+  CSCTL4 = XT1OFF + XT2OFF;
+  CSCTL5 &= ~(XT1OFFG + XT2OFFG);
+
+  PJDIR = 0;
+  PJOUT = 0;
+  PJREN = 0xFF;
+
+  REFCTL0 |= REFTCOFF;
+  REFCTL0 &= ~REFON;
 
 #if (MSS_TASK_USE_TIMER == TRUE)
   // use Timer_A1 to generate interrupt
   TA1CCTL0 = CCIE;
-  TA1CCR0 = 250;   // to generate 1 ms tick
-  TA1CTL = TASSEL_1 + MC_1 + TACLR; 
+  TA1CCR0 = 8;   // to generate 1 ms tick
+  TA1CTL = TASSEL__ACLK + MC__UP + TACLR;
 #endif
   
 #if (MSS_PREEMPTIVE_SCHEDULING == TRUE)

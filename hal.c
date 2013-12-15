@@ -84,8 +84,17 @@ static void (*timer_callback_ptr) (void) = NULL;
 void hal_init(void)
 {
   // initialize both LEDs on Launchpad
-  P3DIR |= (BIT6 + BIT7);
-  P3OUT &= ~(BIT6 + BIT7);
+  //P3DIR |= (BIT6 + BIT7);
+  //P3OUT &= ~(BIT6 + BIT7);
+
+
+
+  P1DIR = 0xFF;
+  P1OUT = 0x00;
+
+  // for controlling external LDO
+  P4DIR |= BIT0;
+  P4OUT &= ~BIT0;	// default high voltage
 }
 
 /**************************************************************************//**
@@ -111,6 +120,12 @@ void hal_toggle_led(uint8_t led)
   }
 }
 
+void hal_toggle_gpio(uint8_t pin)
+{
+    P1OUT ^= pin;
+
+}
+
 /**************************************************************************//**
 *
 * hal_setup_timer_int
@@ -134,6 +149,20 @@ void hal_setup_timer_int(uint16_t tick_ms, void (*callback)(void))
   timer_callback_ptr = callback;
 }
 
+/************************************************************************//**
+ * hal_toggle_vcc
+ */
+void hal_toggle_vcc(uint8_t high_low)
+{
+	P4OUT = ((P4OUT & 0xFE) | high_low);
+}
+
+
+void hal_adjust_frequency(uint8_t quant)
+{
+
+	return;
+}
 
 //*****************************************************************************
 // Internal functions

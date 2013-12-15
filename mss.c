@@ -43,7 +43,7 @@
 //*****************************************************************************
 // Include section
 //*****************************************************************************
-
+#include "hal.h"
 #include "mss.h"
 #include "mss_int.h"
 
@@ -132,6 +132,27 @@ void mss_init(void)
 #endif
 }
 
+void mss_adjust_frequency(void)
+{
+	uint8_t i;
+	uint8_t freq_quant = 0;
+
+	for(i=0 ; i<MSS_NUM_OF_TASKS ; i++)
+	{
+		// if task is active
+		if(mss_ready_task_bits & mss_bitpos_to_bit[i])
+		{
+#ifndef USE_DFS_WEIGHT
+			freq_quant++;
+#else
+			freq_quant += dfs_freq_weight[i];
+#endif
+		}
+	}
+	// adjust_frequncy
+	hal_adjust_frequency(freq_quant);
+}
+
 /**************************************************************************//**
 *
 * mss_run
@@ -152,6 +173,7 @@ void mss_run(void)
 
   while(1)
   {
+	mss_adjust_frequency();
     // run scheduler until no task is active
     mss_scheduler();
 
@@ -162,11 +184,14 @@ void mss_run(void)
     if(mss_ready_task_bits == 0)
     {
       // sleep if no task is active
+    	hal_toggle_vcc(HAL_VCC_LOW);
     #if (MSS_TASK_USE_TIMER == TRUE)
       mss_hal_sleep(mss_timer_get_next_tick());
     #else
       mss_hal_sleep();
     #endif /* (MSS_TASK_USE_TIMER == TRUE) */
+
+      hal_toggle_vcc(HAL_VCC_HIGH);
     }
 
     MSS_LEAVE_CRITICAL_SECTION(int_flag);

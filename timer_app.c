@@ -130,10 +130,10 @@ void init_task_app(void)
   hal_init();
 
   // initialize parameters
-  task1_ctx.led_num = 1;
+  task1_ctx.led_num = BIT0;
   task1_ctx.freq = LED_1_FREQ_MS;
 
-  task2_ctx.led_num = 2;
+  task2_ctx.led_num = BIT1;
   task2_ctx.freq = LED_2_FREQ_MS;
 
   // create timers
@@ -163,7 +163,7 @@ void task_app(void *param)
   while(1)
   {
     // toggle LED
-	hal_toggle_led(variables->led_num);
+	hal_toggle_gpio(variables->led_num);
 
     // delay
     MSS_TIMER_DELAY_MS(variables->timer_hdl, variables->freq, variables->ctx_state);
