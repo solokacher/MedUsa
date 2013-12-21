@@ -47,7 +47,7 @@
 
 #include "dev_types.h"
 #include "hal.h"
-
+#include "mss_cfg.h"
 //*****************************************************************************
 // Global variables 
 //*****************************************************************************
@@ -160,6 +160,15 @@ void hal_toggle_vcc(uint8_t high_low)
 
 void hal_adjust_frequency(uint8_t quant)
 {
+
+	if (quant <= MSS_MAX_FREQ_QUANT/2)
+	{
+		if (CSCTL3&0x0007 != DIVM__2)
+			CSCTL3 = CSCTL3 & ~DIVM__1 | DIVM__2;        // set MCLK divider
+	}
+	else
+		if (CSCTL3&0x0007 != DIVM__1)
+			CSCTL3 = CSCTL3 & ~DIVM__1 | DIVM__1;
 
 	return;
 }

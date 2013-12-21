@@ -182,6 +182,14 @@ typedef uint8_t  mss_event_t;
  */
 #define MSS_DEBUG_MODE                   (FALSE)
 
+//#define USE_DFS_WEIGHT
+#ifndef USE_DFS_WEIGHT
+#define MSS_MAX_FREQ_QUANT			MSS_NUM_OF_TASKS
+#else
+#error confirm following macro and comment this line
+#define MSS_MAX_FREQ_QUANT			MSS_NUM_OF_TASKS
+#endif
+
 //*****************************************************************************
 // External function declarations
 //*****************************************************************************

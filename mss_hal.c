@@ -113,7 +113,7 @@ void mss_hal_init(void)
   CSCTL0 = CSKEY;                           // unlock CS module
   CSCTL1 |= DCOFSEL0 + DCOFSEL1;            // Set max. DCO setting
   CSCTL2 = SELA_1 + SELS_3 + SELM_3;        // set ACLK = MCLK = DCO
-  CSCTL3 = DIVA_0 + DIVS_0 + DIVM_0;        // set all dividers
+  CSCTL3 = DIVA_0 + DIVS_1 + DIVM_0;        // set all dividers
 
   CSCTL4 = XT1OFF + XT2OFF;
   CSCTL5 &= ~(XT1OFFG + XT2OFFG);
